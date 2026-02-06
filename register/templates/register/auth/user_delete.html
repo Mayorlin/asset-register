@@ -1,0 +1,48 @@
+{% extends "register/base.html" %}
+{% block title %}Delete User{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <h2 class="mb-4 text-danger">🗑️ Delete User</h2>
+            
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">⚠️ Confirm Deletion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+                    
+                    <p>Are you sure you want to delete the following user?</p>
+                    
+                    <dl class="row">
+                        <dt class="col-sm-4">Username:</dt>
+                        <dd class="col-sm-8"><strong>{{ delete_user.username }}</strong></dd>
+                        
+                        <dt class="col-sm-4">Name:</dt>
+                        <dd class="col-sm-8">{{ delete_user.get_full_name|default:"-" }}</dd>
+                        
+                        <dt class="col-sm-4">Email:</dt>
+                        <dd class="col-sm-8">{{ delete_user.email|default:"-" }}</dd>
+                        
+                        <dt class="col-sm-4">Role:</dt>
+                        <dd class="col-sm-8">{{ delete_user.profile.get_role_display }}</dd>
+                    </dl>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">🗑️ Yes, Delete User</button>
+                            <a href="{% url 'user_management' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

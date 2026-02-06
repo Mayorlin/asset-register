@@ -1,0 +1,30 @@
+{% extends "register/base.html" %}
+{% block title %}Import Assets{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Import Assets</h2>
+
+<div class="alert alert-warning">
+    <h6 class="mb-2">⚠️ CSV Import Requirements</h6>
+    <ul class="mb-2">
+        <li><strong>Required columns:</strong>
+            Device Name, Device Model, Serial Number, Device Type, Status
+        </li>
+        <li><strong>Serial Number</strong> must be unique (existing assets will be rejected)</li>
+        <li><strong>Decommissioned assets</strong> cannot be imported</li>
+        <li>Device Type and Status must already exist in the system</li>
+        <li>If any row fails validation, the entire import will fail</li>
+    </ul>
+    <small class="text-muted">
+        Tip: Export assets from the system and use the downloaded CSV as a template.
+    </small>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Import</button>
+</form>
+{% endblock %}

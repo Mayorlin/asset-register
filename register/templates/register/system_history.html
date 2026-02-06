@@ -1,0 +1,123 @@
+{% extends "register/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <h4 class="mb-4">System Activity Log</h4>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+
+            <table class="table table-hover table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Asset</th>
+                        <th>Action</th>
+                        <th>Field</th>
+                        <th>Previous Status</th>
+                        <th>New Status</th>
+                        <th>Action By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% for log in page_obj %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+
+                        <td class="system_history-data">
+                            <a href="{% url 'asset_history' log.asset.id %}">
+                                {{ log.asset }}
+                            </a>
+                        </td>
+
+                        <td>
+                            <span class="badge 
+                                {% if log.action == 'create' %} bg-success
+                                {% elif log.action == 'update' %} bg-warning text-dark
+                                {% elif log.action == 'decommission' %} bg-danger
+                                {% else %} bg-secondary
+                                {% endif %}
+                            ">
+                                {{ log.action|title }}
+                            </span>
+                        </td>
+
+                        <td>{{ log.field_name|default:"—" }}</td>
+                        <td>{{ log.old_value|default:"—" }}</td>
+                        <td>{{ log.new_value|default:"—" }}</td>
+
+                        <td>{{ log.user|default:"System" }}</td>
+
+                        <td>{{ log.timestamp|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            No history recorded yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <small class="text-muted">
+            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} assets
+        </small>
+    </div>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link"
+                href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+</div>
+
+<style>
+ a:link {
+      text-decoration: none;
+}
+
+a:visited {
+      text-decoration: none;
+}
+
+a:hover {
+      text-decoration: none;
+}
+
+a:active {
+      text-decoration: none;
+}
+</style>
+{% endblock %}

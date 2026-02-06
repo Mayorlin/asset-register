@@ -1,0 +1,23 @@
+<div id="sidebar" class="sidebar">
+    <ul class="list-unstyled mt-4">
+        <li>
+            <a href="{% url 'asset_list' %}">📋 Assets</a>
+        </li>
+        <li>
+            <a href="{% url 'decommissioned_assets' %}">
+                🗑 Decommissioned
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'system_history' %}" class="list-group-item">
+                🕒 System History
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'import_assets' %}" class="nav-link">
+                Import Assets
+            </a>
+
+        </li>
+    </ul>
+</div>

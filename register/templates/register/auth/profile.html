@@ -1,0 +1,141 @@
+{% extends "register/base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h2 class="mb-4">👤 My Profile</h2>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
+                                <small class="text-muted">Username cannot be changed</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="phone" name="phone" value="{{ profile.phone|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="department" class="form-label">Department</label>
+                                <select class="form-select" id="department" name="department">
+                                    <option value="">-- Select Department --</option>
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.id }}" {% if profile.department == dept %}selected{% endif %}>
+                                            {{ dept.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="role" class="form-label">Role</label>
+                                <input type="text" class="form-control" id="role" value="{{ profile.get_role_display }}" disabled>
+                                <small class="text-muted">Role is assigned by administrator</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="date_joined" class="form-label">Member Since</label>
+                                <input type="text" class="form-control" id="date_joined" value="{{ user.date_joined|date:'F d, Y' }}" disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                            <a href="{% url 'change_password' %}" class="btn btn-secondary">🔑 Change Password</a>
+                            <a href="{% url 'asset_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Role Permissions Info -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Your Permissions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <strong>Create Assets:</strong> 
+                            {% if profile.can_create %}
+                                <span class="badge bg-success">✓ Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">✗ No</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>Edit Assets:</strong> 
+                            {% if profile.can_edit %}
+                                <span class="badge bg-success">✓ Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">✗ No</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>Delete Assets:</strong> 
+                            {% if profile.can_delete %}
+                                <span class="badge bg-success">✓ Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">✗ No</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>Import Assets:</strong> 
+                            {% if profile.can_import %}
+                                <span class="badge bg-success">✓ Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">✗ No</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>Export Assets:</strong> 
+                            {% if profile.can_export %}
+                                <span class="badge bg-success">✓ Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">✗ No</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>View Audit Logs:</strong> 
+                            {% if profile.can_view_audit %}
+                                <span class="badge bg-success">✓ Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">✗ No</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

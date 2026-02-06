@@ -1,0 +1,453 @@
+{% extends "register/base.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .dept-card {
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+    
+    .dept-header {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .device-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        margin: 5px;
+        background: #e9ecef;
+        border-radius: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin-bottom: 30px;
+    }
+    
+    .trend-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 30px;
+    }
+    
+    .metric-box {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .metric-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 300px;
+        }
+        
+        .trend-container {
+            height: 250px;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📈 Detailed Analytics</h2>
+        <div class="btn-group">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">← Back to Dashboard</a>
+            <a href="{% url 'export_dashboard_json' %}" class="btn btn-success">📥 Export JSON</a>
+        </div>
+    </div>
+    
+    <!-- Key Metrics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="metric-value">{{ department_analytics|length }}</div>
+                <div class="metric-label">Departments</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="metric-value">
+                    {% with total=0 %}
+                        {% for dept in department_analytics %}
+                            {% with total=total|add:dept.total_assets %}{% endwith %}
+                        {% endfor %}
+                        {{ total }}
+                    {% endwith %}
+                </div>
+                <div class="metric-label">Total Assets Tracked</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="metric-value">{{ trends.created_trend|length }}</div>
+                <div class="metric-label">Days Analyzed</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="metric-box" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="metric-value">
+                    {% with total=0 %}
+                        {% for item in trends.created_trend %}
+                            {% with total=total|add:item.count %}{% endwith %}
+                        {% endfor %}
+                        {{ total }}
+                    {% endwith %}
+                </div>
+                <div class="metric-label">Assets Added (90 days)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trend Charts -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card analytics-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📊 Asset Activity Trends (Last 90 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="trend-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                    <div class="text-center text-muted">
+                        <small>Tracks daily asset creation and updates over the past 90 days</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Department Breakdown -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card analytics-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🏢 Department-wise Analytics</h5>
+                </div>
+                <div class="card-body">
+                    {% if department_analytics %}
+                        {% for dept in department_analytics %}
+                        <div class="dept-card">
+                            <div class="dept-header">
+                                🏢 {{ dept.department }}
+                                <span class="badge bg-primary float-end">{{ dept.total_assets }} Assets</span>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <strong>Device Types:</strong>
+                                    <div class="mt-2">
+                                        {% for device_type in dept.device_types %}
+                                        <span class="device-badge">
+                                            {{ device_type.device_type__name }}: 
+                                            <strong>{{ device_type.count }}</strong>
+                                        </span>
+                                        {% empty %}
+                                        <small class="text-muted">No devices</small>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="progress" style="height: 30px;">
+                                        {% with total_assets=dept.total_assets %}
+                                        {% if total_assets > 0 %}
+                                            {% with percentage=dept.total_assets|floatformat:0 %}
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 style="width: {{ dept.total_assets }}%"
+                                                 aria-valuenow="{{ dept.total_assets }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                {{ dept.total_assets }} assets
+                                            </div>
+                                            {% endwith %}
+                                        {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <small class="text-muted">Asset distribution</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <p>No department data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Device Type Distribution Chart -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card analytics-card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">💻 Overall Device Type Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="deviceDistChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card analytics-card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">🏢 Department Comparison</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="deptComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Statistics -->
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <div class="card analytics-card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">📋 Summary Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Most Common Device Type</h6>
+                            {% if department_analytics %}
+                                {% with device_counts=dict %}
+                                    {% for dept in department_analytics %}
+                                        {% for dt in dept.device_types %}
+                                            <!-- Would calculate in view ideally -->
+                                        {% endfor %}
+                                    {% endfor %}
+                                {% endwith %}
+                                <p class="text-muted">See chart above for distribution</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Largest Department</h6>
+                            {% if department_analytics %}
+                                {% with max_dept=department_analytics|first %}
+                                    <p><strong>{{ max_dept.department }}</strong></p>
+                                    <p class="text-muted">{{ max_dept.total_assets }} assets</p>
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Analysis Period</h6>
+                            <p><strong>Last 90 Days</strong></p>
+                            <p class="text-muted">Real-time data tracking</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="mb-3">📊 Quick Actions</h6>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary">← Back to Dashboard</a>
+                        <a href="{% url 'asset_list' %}" class="btn btn-secondary">📋 View Assets</a>
+                        {% if user.profile.can_view_audit %}
+                            <a href="{% url 'system_history' %}" class="btn btn-info">🕒 System History</a>
+                        {% endif %}
+                        <a href="{% url 'export_assets_csv' %}" class="btn btn-success">📥 Export CSV</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Trend Chart (Line)
+    const trendData = {
+        labels: [
+            {% for item in trends.created_trend %}
+                '{{ item.date|date:"M d" }}'{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ],
+        datasets: [
+            {
+                label: 'Assets Created',
+                data: [
+                    {% for item in trends.created_trend %}
+                        {{ item.count }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                ],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Assets Updated',
+                data: [
+                    {% for item in trends.updated_trend %}
+                        {{ item.count }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                ],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    };
+    
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: trendData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+    
+    // Collect all device types across departments
+    const deviceTypes = {};
+    {% for dept in department_analytics %}
+        {% for dt in dept.device_types %}
+            const dtName = '{{ dt.device_type__name }}';
+            if (!deviceTypes[dtName]) {
+                deviceTypes[dtName] = 0;
+            }
+            deviceTypes[dtName] += {{ dt.count }};
+        {% endfor %}
+    {% endfor %}
+    
+    // Device Distribution Chart
+    new Chart(document.getElementById('deviceDistChart'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(deviceTypes),
+            datasets: [{
+                data: Object.values(deviceTypes),
+                backgroundColor: [
+                    '#007bff', '#28a745', '#ffc107', '#dc3545', 
+                    '#17a2b8', '#6c757d', '#e83e8c', '#fd7e14'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Department Comparison Chart
+    const deptData = {
+        labels: [
+            {% for dept in department_analytics %}
+                '{{ dept.department }}'{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Assets per Department',
+            data: [
+                {% for dept in department_analytics %}
+                    {{ dept.total_assets }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#667eea', '#f093fb', '#4facfe', '#43e97b',
+                '#fa709a', '#fee140', '#30cfd0', '#a8edea'
+            ]
+        }]
+    };
+    
+    new Chart(document.getElementById('deptComparisonChart'), {
+        type: 'bar',
+        data: deptData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

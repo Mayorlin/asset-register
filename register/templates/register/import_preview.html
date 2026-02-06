@@ -1,0 +1,147 @@
+{% extends "register/base.html" %}
+{% block title %}Import Preview{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Import Preview</h2>
+
+<p class="text-muted">
+    Review the data below before importing.  
+    Rows with errors will <strong>not</strong> be imported.
+</p>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-body">
+                <h5 class="card-title text-success">✅ Valid Rows</h5>
+                <p class="card-text display-6">{{ valid_rows|length }}</p>
+                <p class="text-muted mb-0">Ready to import</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h5 class="card-title text-danger">❌ Invalid Rows</h5>
+                <p class="card-text display-6">{{ error_rows|length }}</p>
+                <p class="text-muted mb-0">Need correction</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action buttons -->
+<div class="d-flex gap-2 mb-4">
+    <!-- Always available -->
+    <a href="{% url 'import_assets' %}" class="btn btn-secondary">
+        ⬅ Back to Import
+    </a>
+
+    <!-- Only allow import if at least one row is valid -->
+    {% if valid_rows %}
+    <form method="post" action="{% url 'confirm_import' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">
+            ✅ Import {{ valid_rows|length }} Valid Asset{{ valid_rows|length|pluralize }}
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<!-- Case: No valid rows -->
+{% if not valid_rows %}
+<div class="alert alert-danger">
+    <strong>No valid records found.</strong><br>
+    Every row in this CSV file contains errors.  
+    Please fix the issues below and upload the file again.
+</div>
+{% endif %}
+
+<!-- Error table -->
+{% if error_rows %}
+<h5 class="mt-4 text-danger">❌ Rows With Errors ({{ error_rows|length }})</h5>
+<p class="text-muted">These rows will NOT be imported. Please fix the errors and re-upload the CSV file.</p>
+
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle table-sm">
+    <thead class="table-danger">
+        <tr>
+            <th style="width: 50px;">Row</th>
+            <th>Device Name</th>
+            <th>Device Model</th>
+            <th>Serial Number</th>
+            <th>Device Type</th>
+            <th>Status</th>
+            <th>Location</th>
+            <th>Department</th>
+            <th>Staff Name</th>
+            <th style="width: 25%;">Errors</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in error_rows %}
+        <tr>
+            <td class="fw-bold text-center">{{ row.row_number }}</td>
+            <td>{{ row.device_name|default:"—" }}</td>
+            <td>{{ row.device_model|default:"—" }}</td>
+            <td>{{ row.serial_number|default:"—" }}</td>
+            <td>{{ row.device_type|default:"—" }}</td>
+            <td>{{ row.status|default:"—" }}</td>
+            <td>{{ row.location|default:"—" }}</td>
+            <td>{{ row.department|default:"—" }}</td>
+            <td>{{ row.staff_name|default:"—" }}</td>
+            <td class="text-danger">
+                <ul class="mb-0 ps-3">
+                    {% for error in row.errors %}
+                    <li><small>{{ error }}</small></li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endif %}
+
+<!-- Valid rows preview -->
+{% if valid_rows %}
+<h5 class="mt-4 text-success">✅ Valid Rows ({{ valid_rows|length }}) - Ready for Import</h5>
+<p class="text-muted">These rows will be imported when you click the "Import" button above.</p>
+
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle table-sm">
+    <thead class="table-success">
+        <tr>
+            <th style="width: 50px;">Row</th>
+            <th>Device Name</th>
+            <th>Device Model</th>
+            <th>Serial Number</th>
+            <th>Device Type</th>
+            <th>Status</th>
+            <th>Location</th>
+            <th>Department</th>
+            <th>Staff Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in valid_rows %}
+        <tr>
+            <td class="text-center">{{ row.row_number }}</td>
+            <td>{{ row.device_name }}</td>
+            <td>{{ row.device_model }}</td>
+            <td>{{ row.serial_number }}</td>
+            <td>{{ row.device_type }}</td>
+            <td>{{ row.status }}</td>
+            <td>{{ row.location }}</td>
+            <td>{{ row.department|default:"—" }}</td>
+            <td>{{ row.staff_name|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endif %}
+
+{% endblock %}

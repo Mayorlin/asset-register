@@ -1,0 +1,48 @@
+<div id="sidebar" class="sidebar">
+    <ul class="list-unstyled mt-4">
+        <li>
+            <a href="{% url 'asset_list' %}">📋 Assets</a>
+        </li>
+        <li>
+            <a href="{% url 'decommissioned_assets' %}">
+                🗑 Decommissioned
+            </a>
+        </li>
+        
+        {% if user.profile.can_view_audit %}
+        <li>
+            <a href="{% url 'system_history' %}" class="list-group-item">
+                🕒 System History
+            </a>
+        </li>
+        {% endif %}
+        
+        {% if user.profile.can_import %}
+        <li>
+            <a href="{% url 'import_assets' %}" class="nav-link">
+                📥 Import Assets
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'dashboard' %}">📊 Dashboard</a>
+        </li>
+        <li>
+            <a href="{% url 'analytics' %}">📈 Analytics</a>
+        </li>
+        {% endif %}
+        
+        {% if user.profile.is_admin %}
+        <li>
+            <hr class="border-secondary my-3">
+        </li>
+        <li>
+            <a href="{% url 'user_management' %}" class="nav-link">
+                👥 User Management
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'ad_user_management' %}">👥 AD Users</a>
+        </li>
+        {% endif %}
+    </ul>
+</div>

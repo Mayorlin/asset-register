@@ -1,0 +1,364 @@
+{% extends "register/base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #ffffff;
+        text-transform: uppercase;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 30px;
+    }
+    
+    .activity-item {
+        padding: 15px;
+        border-left: 3px solid #007bff;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+    
+    .activity-time {
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    @media (max-width: 768px) {
+        .stat-value {
+            font-size: 1.5rem;
+        }
+        
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">📊 Dashboard</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="row">
+        <!-- Total Assets -->
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-primary text-white">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value">{{ stats.total_assets }}</div>
+                <div class="stat-label"><strong>Assets</strong></div>
+            </div>
+        </div>
+        
+        <!-- Active Assets -->
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-success text-white">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">{{ stats.active_assets }}</div>
+                <div class="stat-label"><strong>Active Assets</strong></div>
+            </div>
+        </div>
+        
+        <!-- This Month -->
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-info text-white">
+                <div class="stat-icon">📅</div>
+                <div class="stat-value">{{ stats.assets_this_month }}</div>
+                <div class="stat-label"><strong>Added this Month</strong></div>
+            </div>
+        </div>
+        
+        <!-- Utilization -->
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-warning text-white">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value">{{ utilization.utilization_rate }}%</div>
+                <div class="stat-label"><strong>utilization Rate</strong></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mt-4">
+        <!-- Status Breakdown -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📊 Assets by Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Device Type Breakdown -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">💻 Assets by Device Type</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="deviceTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Department and Location Charts -->
+    <div class="row mt-4">
+        <!-- Department Breakdown -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">🏢 Assets by Department</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="departmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Location Breakdown -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">📍 Assets by Location</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="locationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">🕒 Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if stats.recent_activity %}
+                        {% for activity in stats.recent_activity %}
+                        <div class="activity-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ activity.asset__device_name }}</strong> 
+                                    <span class="badge bg-primary">{{ activity.action }}</span>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if activity.field_name %}
+                                            {{ activity.field_name }}: 
+                                            <span class="text-danger">{{ activity.old_value|default:"N/A" }}</span> → 
+                                            <span class="text-success">{{ activity.new_value }}</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="activity-time">
+                                        {% if activity.user__username %}
+                                            by {{ activity.user__username }}<br>
+                                        {% endif %}
+                                        {{ activity.timestamp|date:"M d, Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">⚡ Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        {% if user.profile.can_create %}
+                            <a href="{% url 'asset_create' %}" class="btn btn-success">➕ New Asset</a>
+                        {% endif %}
+                        <a href="{% url 'asset_list' %}" class="btn btn-primary">📋 View All Assets</a>
+                        <a href="{% url 'analytics' %}" class="btn btn-info">📈 Detailed Analytics</a>
+                        {% if user.profile.can_export %}
+                            <a href="{% url 'export_assets_csv' %}" class="btn btn-secondary">📥 Export CSV</a>
+                        {% endif %}
+                        {% if user.profile.can_import %}
+                            <a href="{% url 'import_assets' %}" class="btn btn-warning">📤 Import Assets</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Chart.js configuration
+    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    
+    // Status Chart
+    const statusData = {
+        labels: [{% for item in stats.status_breakdown %}'{{ item.status__name }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for item in stats.status_breakdown %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: [
+                '#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6c757d'
+            ]
+        }]
+    };
+    
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: statusData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Device Type Chart
+    const deviceTypeData = {
+        labels: [{% for item in stats.device_type_breakdown %}'{{ item.device_type__name }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for item in stats.device_type_breakdown %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: [
+                '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d'
+            ]
+        }]
+    };
+    
+    new Chart(document.getElementById('deviceTypeChart'), {
+        type: 'pie',
+        data: deviceTypeData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Department Chart
+    const departmentData = {
+        labels: [{% for item in stats.department_breakdown %}'{{ item.department__name|default:"Unassigned" }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Assets',
+            data: [{% for item in stats.department_breakdown %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: '#17a2b8'
+        }]
+    };
+    
+    new Chart(document.getElementById('departmentChart'), {
+        type: 'bar',
+        data: departmentData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+    
+    // Location Chart
+    const locationData = {
+        labels: [{% for item in stats.location_breakdown %}'{{ item.location__name }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Assets',
+            data: [{% for item in stats.location_breakdown %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: '#ffc107'
+        }]
+    };
+    
+    new Chart(document.getElementById('locationChart'), {
+        type: 'bar',
+        data: locationData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

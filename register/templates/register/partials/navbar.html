@@ -1,0 +1,44 @@
+<nav class="navbar navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <button class="btn btn-outline-light" id="sidebarToggle">
+            ☰
+        </button>
+
+        <span class="navbar-brand ms-3">Asset Register</span>
+
+        <div class="d-flex align-items-center gap-2">
+            {% if user.is_authenticated %}
+                <!-- User Profile Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        👤 {{ user.get_full_name|default:user.username }}
+                        {% if user.profile %}
+                            <span class="badge bg-info">{{ user.profile.get_role_display }}</span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="{% url 'user_profile' %}">👤 My Profile</a></li>
+                        <li><a class="dropdown-item" href="{% url 'change_password' %}">🔑 Change Password</a></li>
+                        {% if user.profile.is_admin %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'user_management' %}">👥 Manage Users</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'logout' %}">🚪 Logout</a></li>
+                    </ul>
+                </div>
+                
+                <!-- New Asset Button (only for managers and admins) -->
+                {% if user.profile.can_create %}
+                    <a href="{% url 'asset_create' %}" class="btn btn-success btn-sm">
+                        ➕ New Asset
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm">
+                    Login
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

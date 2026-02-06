@@ -1,0 +1,23 @@
+{% extends "register/base.html" %}
+{% block title %}Delete Asset{% endblock %}
+
+{% block content %}
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        Confirm Delete
+    </div>
+    <div class="card-body">
+        <p>Are you sure you want to delete this asset?</p>
+        <ul>
+            <li><strong>Device Name:</strong> {{ asset.device_name }}</li>
+            <li><strong>Serial Number:</strong> {{ asset.serial_number }}</li>
+            <li><strong>Status:</strong> {{ asset.status.name }}</li>
+        </ul>
+        <form method="post">
+            {% csrf_token %}
+            <a href="{% url 'asset_list' %}" class="btn btn-secondary me-2">Cancel</a>
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

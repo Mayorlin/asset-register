@@ -1,0 +1,73 @@
+{% extends "register/base.html" %}
+{% load custom_filters %}
+
+{% block title %}Asset History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Asset History</h3>
+        <a href="{% url 'asset_list' %}" class="btn btn-secondary btn-sm">Back to Assets</a>
+    </div>
+
+    {% if history %}
+        <ul class="timeline list-unstyled">
+            {% for entry in history %}
+            <li class="mb-4">
+                <div class="d-flex align-items-center mb-1">
+                    <span class="badge 
+                        {% if entry.action == 'created' %}bg-success
+                        {% elif entry.action == 'updated' %}bg-primary
+                        {% elif entry.action == 'decommissioned' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ entry.action|title }}
+                    </span>
+                    <span class="ms-2">
+                        {% if entry.user %}
+                            {{ entry.user.username }}
+                        {% else %}
+                            System
+                        {% endif %}
+                    </span>
+                    <small class="text-muted ms-auto">
+                        {{ entry.timestamp|date:"M d, Y H:i" }}
+                    </small>
+                </div>
+
+                {% if entry.field_name %}
+                    <div class="ms-4">
+                        <strong>{{ entry.field_name|underscore_to_space|title }}</strong>: 
+                        <span class="text-danger">{{ entry.old_value|default:"—" }}</span>
+                        <i class="bi bi-arrow-right"></i>
+                        <span class="text-success">{{ entry.new_value|default:"—" }}</span>
+                    </div>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-info">
+            No history recorded for this asset yet.
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.timeline li {
+    border-left: 3px solid #dee2e6;
+    padding-left: 15px;
+    position: relative;
+}
+.timeline li::before {
+    content: "";
+    position: absolute;
+    left: -9px;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    background-color: #fff;
+    border: 3px solid #0d6efd;
+    border-radius: 50%;
+}
+</style>
+{% endblock %}

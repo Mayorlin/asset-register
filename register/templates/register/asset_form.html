@@ -1,0 +1,98 @@
+{% extends "register/base.html" %}
+{% load static %}
+{% load form_filters %}  {# assuming you created add_class filter #}
+
+{% block title %}{% if form.instance.pk %}Edit Asset{% else %}New Asset{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+        <h2 class="mb-4">{% if form.instance.pk %}Edit Asset{% else %}Create New Asset{% endif %}</h2>
+            
+    {% if form.instance.pk %}
+    <div class="alert alert-warning">
+        <strong>Note:</strong> The following fields cannot be changed after creation:
+        <ul class="mb-0">
+            <li>Serial Number</li>
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <strong>Form Errors:</strong>
+        <ul>
+            {% for field, errors in form.errors.items %}
+                <li><strong>{{ field }}:</strong> {{ errors }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Device Name -->
+            <div class="col-md-6 mb-3">
+                <label for="id_device_name" class="form-label">Device Name</label>
+                {{ form.device_name|add_class:"form-control" }}
+            </div>
+
+            <!-- Device Model -->
+            <div class="col-md-6 mb-3">
+                <label for="id_device_model" class="form-label">Device Model</label>
+                {{ form.device_model|add_class:"form-control" }}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Serial Number -->
+            <div class="col-md-6 mb-3">
+                <label for="id_serial_number" class="form-label">Serial Number</label>
+                {{ form.serial_number|add_class:"form-control" }}
+            </div>
+
+            <!-- Device Type -->
+            <div class="col-md-6 mb-3">
+                <label for="id_device_type" class="form-label">Device Type</label>
+                {{ form.device_type|add_class:"form-select" }}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Status -->
+            <div class="col-md-6 mb-3">
+                <label for="id_status" class="form-label">Status</label>
+                {{ form.status|add_class:"form-select" }}
+            </div>
+
+            <!-- Staff Name -->
+            <div class="col-md-6 mb-3">
+                <label for="id_staff_name" class="form-label">Staff Name</label>
+                {{ form.staff_name|add_class:"form-control" }}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Location -->
+            <div class="col-md-6 mb-3">
+                <label for="id_location" class="form-label">Location</label>
+                {{ form.location|add_class:"form-select" }}
+            </div>
+
+            <!-- Department -->
+            <div class="col-md-6 mb-3">
+                <label for="id_department" class="form-label">Department</label>
+                {{ form.department|add_class:"form-select" }}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">
+                {% if form.instance.pk %}Update{% else %}Create{% endif %}
+            </button>
+            <a href="{% url 'asset_list' %}" class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
