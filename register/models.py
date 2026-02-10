@@ -21,15 +21,15 @@ class DeviceType(models.Model):
 
 
 class DeviceStatus(models.Model):
-    STATUS_ACTIVE = "active"
-    STATUS_IN_USE = "in_use"
     STATUS_SPARE = "spare"
+    STATUS_IN_USE = "in-use"
+    STATUS_RETRIEVED = "retrieved"
     STATUS_DECOMMISSIONED = "decommissioned"
 
     STATUS_CHOICES = [
-        (STATUS_ACTIVE, "Spare"),
+        (STATUS_SPARE, "Spare"),
         (STATUS_IN_USE, "In-Use"),
-        (STATUS_SPARE, "Retrieved"),
+        (STATUS_RETRIEVED, "Retrieved"),
         (STATUS_DECOMMISSIONED, "Decommissioned"),
     ]
 
