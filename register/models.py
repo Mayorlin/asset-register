@@ -27,9 +27,9 @@ class DeviceStatus(models.Model):
     STATUS_DECOMMISSIONED = "decommissioned"
 
     STATUS_CHOICES = [
-        (STATUS_ACTIVE, "Active"),
-        (STATUS_IN_USE, "In Use"),
-        (STATUS_SPARE, "Spare"),
+        (STATUS_ACTIVE, "Spare"),
+        (STATUS_IN_USE, "In-Use"),
+        (STATUS_SPARE, "Retrieved"),
         (STATUS_DECOMMISSIONED, "Decommissioned"),
     ]
 
